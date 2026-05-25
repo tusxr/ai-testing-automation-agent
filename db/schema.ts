@@ -7,7 +7,19 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   credits: integer("credits").default(1000).notNull(),
 });
-
+export const repositories = pgTable("repositories", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  repoId: integer("repo_id").notNull(),
+  name: text("name").notNull(),
+  fullName: text("full_name").notNull(),
+  private: integer("private").notNull(),
+  description: text("description").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  htmlUrl: text("html_url").notNull(),
+  owner: text("owner").notNull(),
+  language: text("language"),
+});
 // export const posts = pgTable("posts", {
 //   id: serial("id").primaryKey(),
 //   title: text("title").notNull(),
