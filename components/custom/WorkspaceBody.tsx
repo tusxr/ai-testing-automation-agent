@@ -8,26 +8,39 @@ import EmptyWorkspace from './EmptyWorkspace'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import RepoDialog from './RepoDialog'
-
+import UserRepoList from './UserRepoList'
+import { Repo, UserRepo } from '@/types'
 
 function WorkspaceBody() {
+    const { userDetail } = useContext(UserDetailContext)
+    const router = useRouter()
     const [token, setToken] = useState('')
-    useEffect(() => {
-        GetGithubToken();
-    }, []);
+    const [userRepoList, setUserRepoList] = useState<UserRepo[]>([]);
+
     const GetGithubToken = async () => {
         const result = await axios.get('/api/github/token')
         console.log(result.data.token)
         setToken(result.data.token)
     }
 
-
-    const { userDetail } = useContext(UserDetailContext)
-    const router = useRouter()
+    const GetUserRepoList = async () => {
+        const result = await axios.get(`/api/user-repo?userId=${userDetail?.id}`);
+        setUserRepoList(result.data);
+    }
 
     const OnAddRepo = async () => {
         router.push('/api/github')
     }
+
+    useEffect(() => {
+        GetGithubToken();
+    }, []);
+
+    useEffect(() => {
+        if (userDetail?.id) {
+            GetUserRepoList();
+        }
+    }, [userDetail]);
     return (
         <div>
 
@@ -47,16 +60,18 @@ function WorkspaceBody() {
                 <div>
                     {!token ? <Button onClick={OnAddRepo}>
                         Setup
-                    </Button> : <RepoDialog setRefreshPage={(refresh: boolean) => console.log(refresh)} />}
+                    </Button> : <RepoDialog userRepoList={userRepoList} setRefreshPage={(refresh: boolean) => refresh && GetUserRepoList()} />}
 
                 </div>
             </Card>
-
-            <Card className='mt-6'>
-                <CardContent>
-                    <EmptyWorkspace />
-                </CardContent>
-            </Card>
+            {!userRepoList.length ?
+                <Card className='mt-6'>
+                    <CardContent>
+                        <EmptyWorkspace />
+                    </CardContent>
+                </Card> : (
+                    <UserRepoList repoList={userRepoList} />
+                )}
 
 
         </div >

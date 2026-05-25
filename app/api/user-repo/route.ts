@@ -1,4 +1,5 @@
 import { db, repositories } from "@/db";
+import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -17,4 +18,24 @@ export async function POST(req: NextRequest) {
     }).returning();
     return NextResponse.json(result[0]);
 
+}
+
+export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
+    const result = await db.select().from(repositories).where(
+        //@ts-ignore
+        eq(repositories.userId, Number(userId)));
+
+    // Deduplicate database rows by repoId to filter out any duplicates
+    const uniqueResult: typeof result = [];
+    const seenRepoIds = new Set<number>();
+    for (const row of result) {
+        if (!seenRepoIds.has(row.repoId)) {
+            seenRepoIds.add(row.repoId);
+            uniqueResult.push(row);
+        }
+    }
+
+    return NextResponse.json(uniqueResult);
 }
