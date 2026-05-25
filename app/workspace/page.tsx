@@ -1,10 +1,14 @@
 import React from 'react'
 import WorkspaceBody from '@/components/custom/WorkspaceBody'
+import { cookies } from 'next/headers'
 
-function Workspace() {
+async function Workspace() {
+    const cookieStore = await cookies()
+    const token = cookieStore.get('gh-token')?.value
+
     return (
         <div className='mx-auto max-w-4xl'>
-            <WorkspaceBody />
+            <WorkspaceBody token={token} />
         </div>
     )
 }

@@ -1,13 +1,32 @@
 "use client"
-import React, { useContext } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { UserDetailContext } from '@/context/UserDetailContext'
 import { Button } from '../ui/button'
 import { Card, CardContent } from '../ui/card'
 import EmptyWorkspace from './EmptyWorkspace'
+import axios from 'axios'
+import { useRouter } from 'next/navigation'
+
 
 function WorkspaceBody() {
+    const [token, setToken] = useState('')
+    useEffect(() => {
+        GetGithubToken();
+    }, []);
+    const GetGithubToken = async () => {
+        const result = await axios.get('/api/github/token')
+        console.log(result.data.token)
+        setToken(result.data.token)
+    }
+
+
     const { userDetail } = useContext(UserDetailContext)
+    const router = useRouter()
+
+    const OnAddRepo = async () => {
+        router.push('/api/github')
+    }
     return (
         <div>
 
@@ -25,9 +44,12 @@ function WorkspaceBody() {
                 </div>
 
                 <div>
-                    <Button >
-                        + Add
-                    </Button>
+                    {!token ? <Button onClick={OnAddRepo}>
+                        Setup
+                    </Button> : <Button>
+                        + Add Repo
+                    </Button>}
+
                 </div>
             </Card>
 
