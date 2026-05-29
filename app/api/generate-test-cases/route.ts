@@ -83,6 +83,7 @@ async function getRepoTree({
             headers: {
                 Authorization: `Bearer ${githubToken}`,
                 Accept: "application/vnd.github+json",
+                "User-Agent": "ai-test-automation",
             },
         }
     );
@@ -118,6 +119,7 @@ async function readGithubFile({
             headers: {
                 Authorization: `Bearer ${githubToken}`,
                 Accept: "application/vnd.github+json",
+                "User-Agent": "ai-test-automation",
             },
         }
     );

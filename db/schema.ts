@@ -48,6 +48,9 @@ export const TestCasesTable = pgTable("test_cases", {
   // Later you can update these fields
   browserbaseScript: text("browserbase_script"),
   status: varchar("status", { length: 100 }).default("generated"),
+  logs: jsonb("logs").$type<string[]>().default([]),
+  sessionId: varchar("session_id", { length: 255 }),
+  sessionUrl: text("session_url"),
 
   createdAt: timestamp("created_at").defaultNow(),
 });

@@ -5,15 +5,18 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from '../ui/button'
 import { Play, RefreshCw, SettingsIcon } from 'lucide-react'
 import TestCaseSettingDialog from './TestCaseSettingDialog'
+import TestExecutionModal from './TestCaseExecution'
 
 type Props = {
     testCase: TestCase[],
     onReload: () => void,
-    loading?: boolean
+    loading?: boolean,
+    repository?: any
 }
 
-function TestCaseList({ testCase, onReload, loading }: Props) {
+function TestCaseList({ testCase, onReload, loading, repository }: Props) {
     const [selectedTestCases, setSelectedTestCases] = useState<TestCase[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const handleSelectedTestCase = (tc: TestCase, checked: boolean) => {
         if (checked) {
             setSelectedTestCases((prev) => [...prev, tc]);
@@ -50,7 +53,9 @@ function TestCaseList({ testCase, onReload, loading }: Props) {
                             </div>
                             <div className='flex gap-2 shrink-0'>
                                 <Badge variant={'secondary'}>{tc?.type}</Badge>
-                                <Badge variant={'secondary'}>Pending</Badge>
+                                {tc?.status == 'failed' && <Badge variant={'destructive'} className='text-red-200 font-normal capitalize'>{tc?.status}</Badge>}
+                                {tc?.status === 'passed' && <Badge variant={'success'} className='text-green-200 font-normal capitalize'>{tc?.status}</Badge>}
+                                {tc?.status == 'pending' && <Badge variant={'secondary'} className='text-amber-400 font-normal capitalize'>{tc?.status}</Badge>}
                                 <TestCaseSettingDialog tc={tc} onReload={onReload} />
                             </div>
                         </div>
@@ -58,12 +63,26 @@ function TestCaseList({ testCase, onReload, loading }: Props) {
                 ))}
                 <div>
                     <div className='p-4 flex items-center justify-end gap-2'>
-                        <Button disabled={selectedTestCases?.length === 0}>
+                        <Button
+                            disabled={selectedTestCases?.length === 0}
+                            onClick={() => setIsModalOpen(true)}
+                        >
                             <Play className="mr-2 h-4 w-4" />
                             Run Selected Test Cases
-                        </Button></div>
+                        </Button>
+                    </div>
                 </div>
             </div>
+
+            <TestExecutionModal
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    onReload();
+                }}
+                testCases={selectedTestCases}
+                repository={repository}
+            />
         </div>
     )
 }

@@ -36,7 +36,10 @@ export type TestCase = {
     status: string | null;
     createdAt: string | null;
     targetDomain: string | null;
-
+    browserbaseScript?: string | null;
+    logs?: string[] | null;
+    sessionId?: string | null;
+    sessionUrl?: string | null;
 }
 
 function UserRepoList({ repoList, onRefreshRepos }: props) {
@@ -208,6 +211,7 @@ function UserRepoList({ repoList, onRefreshRepos }: props) {
                                             testCase={testCases}
                                             onReload={() => fetchTestCases(repoKey)}
                                             loading={loading}
+                                            repository={repo}
                                         />
                                     )}
 

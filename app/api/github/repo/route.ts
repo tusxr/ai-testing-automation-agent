@@ -13,10 +13,16 @@ export async function GET() {
         const res = await fetch(`https://api.github.com/user/repos?per_page=100&page=${page}&sort=updated`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Accept': 'application/vnd.github.v3+json'
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'ai-test-automation'
             }
         })
         if (!res.ok) {
+            if (res.status === 401 || res.status === 403) {
+                // Clear the invalid token cookie
+                cookiesStore.delete('gh-token');
+                return NextResponse.json({ error: 'GitHub session expired. Please reconnect your GitHub account.' }, { status: 401 })
+            }
             return NextResponse.json({ error: 'Failed to fetch repos' }, { status: 400 })
         }
         const repos = await res.json();

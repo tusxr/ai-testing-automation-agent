@@ -60,7 +60,7 @@ function WorkspaceBody() {
                 <div>
                     {!token ? <Button onClick={OnAddRepo}>
                         Setup
-                    </Button> : <RepoDialog userRepoList={userRepoList} setRefreshPage={(refresh: boolean) => refresh && GetUserRepoList()} />}
+                    </Button> : <RepoDialog userRepoList={userRepoList} setRefreshPage={(refresh: boolean) => refresh && GetUserRepoList()} onAuthError={() => setToken('')} />}
 
                 </div>
             </Card>
