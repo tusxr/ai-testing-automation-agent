@@ -1,6 +1,5 @@
 "use client"
 import React, { useContext, useEffect, useState } from 'react'
-import Image from 'next/image'
 import { UserDetailContext } from '@/context/UserDetailContext'
 import { Button } from '../ui/button'
 import { Card, CardContent } from '../ui/card'
@@ -9,23 +8,52 @@ import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import RepoDialog from './RepoDialog'
 import UserRepoList from './UserRepoList'
-import { Repo, UserRepo } from '@/types'
+import { UserRepo } from '@/types'
+import { Github, CheckCircle2 } from 'lucide-react'
+import { toast } from 'sonner'
+import Image from 'next/image'
+
+type GithubUser = {
+    login: string;
+    name: string | null;
+    avatar_url: string;
+}
 
 function WorkspaceBody() {
     const { userDetail } = useContext(UserDetailContext)
     const router = useRouter()
     const [token, setToken] = useState('')
+    const [githubUser, setGithubUser] = useState<GithubUser | null>(null)
     const [userRepoList, setUserRepoList] = useState<UserRepo[]>([]);
 
     const GetGithubToken = async () => {
-        const result = await axios.get('/api/github/token')
-        console.log(result.data.token)
-        setToken(result.data.token)
+        try {
+            const result = await axios.get('/api/github/token')
+            if (result.data.token) {
+                setToken(result.data.token)
+                GetGithubUser()
+            }
+        } catch {
+            // Token not available, silently handled
+        }
+    }
+
+    const GetGithubUser = async () => {
+        try {
+            const result = await axios.get('/api/github/user')
+            setGithubUser(result.data)
+        } catch {
+            // Silently handled — user info is cosmetic
+        }
     }
 
     const GetUserRepoList = async () => {
-        const result = await axios.get(`/api/user-repo?userId=${userDetail?.id}`);
-        setUserRepoList(result.data);
+        try {
+            const result = await axios.get(`/api/user-repo?userId=${userDetail?.id}`);
+            setUserRepoList(result.data);
+        } catch {
+            toast.error('Failed to load repositories');
+        }
     }
 
     const OnAddRepo = async () => {
@@ -41,40 +69,90 @@ function WorkspaceBody() {
             GetUserRepoList();
         }
     }, [userDetail]);
-    return (
-        <div>
 
-            <div className='flex justify-between items-center m-6'>
-                <h2 className='text-2xl font-medium m-6'>Workspaces</h2>
-                <h2 className='text-blue-600 font-medium bg-blue-100 rounded-lg p-2'>Remaining Credits:{userDetail?.credits}</h2>
+    return (
+        <div className='space-y-6'>
+            {/* Page heading */}
+            <div className='flex items-center justify-between'>
+                <div>
+                    <h1 className='text-2xl font-bold tracking-tight text-foreground'>Workspace</h1>
+                    <p className='text-sm text-muted-foreground mt-0.5'>
+                        Manage your connected repositories and run AI-generated tests
+                    </p>
+                </div>
             </div>
 
+            {/* GitHub Connection Card */}
+            <Card className='border-border bg-card'>
+                <CardContent className='flex items-center justify-between gap-4 p-4'>
+                    <div className='flex items-center gap-3'>
+                        {/* Avatar or icon */}
+                        {token && githubUser?.avatar_url ? (
+                            <div className='relative h-10 w-10 shrink-0'>
+                                <Image
+                                    src={githubUser.avatar_url}
+                                    alt={githubUser.login}
+                                    fill
+                                    className='rounded-full object-cover'
+                                />
+                                <span className='absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-card'>
+                                    <CheckCircle2 className='h-2.5 w-2.5 text-white' />
+                                </span>
+                            </div>
+                        ) : (
+                            <div className='flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 dark:bg-slate-100 shrink-0'>
+                                <Github className='h-5 w-5 text-white dark:text-slate-900' />
+                            </div>
+                        )}
 
+                        <div>
+                            <div className='flex items-center gap-2'>
+                                <h2 className='text-sm font-semibold text-foreground'>
+                                    {token
+                                        ? (githubUser?.name || githubUser?.login || 'GitHub Connected')
+                                        : 'Connect GitHub Account'}
+                                </h2>
+                                {token && githubUser?.login && (
+                                    <span className='text-xs text-muted-foreground font-mono'>
+                                        @{githubUser.login}
+                                    </span>
+                                )}
+                            </div>
+                            <p className='text-xs text-muted-foreground'>
+                                {token
+                                    ? 'Add repositories to generate and run AI test cases'
+                                    : 'Connect your GitHub account to get started'}
+                            </p>
+                        </div>
+                    </div>
 
-            <Card className='flex items-center justify-between gap-4 p-4 border  rounded-lg cursor-pointer'>
-                <div className='flex items-center gap-4'>
-                    <Image src={'/github.png'} alt='github' width={50} height={50}></Image>
-                    <h2 className='text-lg'>Connect Github & Add Repository</h2>
-                </div>
-
-                <div>
-                    {!token ? <Button onClick={OnAddRepo}>
-                        Setup
-                    </Button> : <RepoDialog userRepoList={userRepoList} setRefreshPage={(refresh: boolean) => refresh && GetUserRepoList()} onAuthError={() => setToken('')} />}
-
-                </div>
+                    <div className='shrink-0'>
+                        {!token
+                            ? <Button onClick={OnAddRepo} size='sm' className='gap-1.5'>
+                                <Github className='h-3.5 w-3.5' />
+                                Connect GitHub
+                            </Button>
+                            : <RepoDialog
+                                userRepoList={userRepoList}
+                                setRefreshPage={(refresh: boolean) => refresh && GetUserRepoList()}
+                                onAuthError={() => { setToken(''); setGithubUser(null); }}
+                            />
+                        }
+                    </div>
+                </CardContent>
             </Card>
-            {!userRepoList.length ?
-                <Card className='mt-6'>
-                    <CardContent>
+
+            {/* Repository list or empty state */}
+            {!userRepoList.length ? (
+                <Card className='border-border bg-card'>
+                    <CardContent className='p-6'>
                         <EmptyWorkspace />
                     </CardContent>
-                </Card> : (
-                    <UserRepoList repoList={userRepoList} onRefreshRepos={GetUserRepoList} />
-                )}
-
-
-        </div >
+                </Card>
+            ) : (
+                <UserRepoList repoList={userRepoList} onRefreshRepos={GetUserRepoList} />
+            )}
+        </div>
     )
 }
 

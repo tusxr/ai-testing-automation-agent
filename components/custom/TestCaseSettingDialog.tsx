@@ -9,13 +9,14 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { SettingsIcon } from 'lucide-react'
+import { Settings2Icon, Loader2 } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { TestCase } from './UserRepoList'
 import axios from 'axios'
+import { toast } from 'sonner'
 
 type Props = {
     tc?: TestCase
@@ -40,6 +41,7 @@ function TestCaseSettingDialog({ tc, onReload }: Props) {
     const updateTestCase = async () => {
         if (!tc || isUpdating) return;
         setIsUpdating(true);
+        const toastId = toast.loading('Updating test case…');
         try {
             const response = await axios.post('/api/test-cases/settings', {
                 title: formTestCase.title,
@@ -50,17 +52,19 @@ function TestCaseSettingDialog({ tc, onReload }: Props) {
                 testCaseId: tc?.id
             });
             if (response.data.success) {
+                toast.success('Test case updated', { id: toastId });
                 setIsOpen(false);
                 onReload?.();
+            } else {
+                toast.error('Failed to update test case', { id: toastId });
             }
-        } catch (error) {
-            console.error("Failed to update test case:", error);
+        } catch {
+            toast.error('Failed to update test case', { id: toastId });
         } finally {
             setIsUpdating(false);
         }
     }
 
-    // Sync form whenever the dialog opens or the tc prop changes
     useEffect(() => {
         if (isOpen && tc) {
             setFormTestCase({
@@ -76,43 +80,71 @@ function TestCaseSettingDialog({ tc, onReload }: Props) {
         <div>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="outline" size="icon" className='rounded-full bg-green-300 text-green-700 border-green-300 hover:bg-green-400 hover:text-green-800 hover:border-green-400' >
-                        <SettingsIcon className='text-sm h-4 w-4 ' />
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className='h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted'
+                        aria-label='Edit test case'
+                    >
+                        <Settings2Icon className='h-3.5 w-3.5' />
                     </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className='bg-background border-border'>
                     <DialogHeader>
-                        <DialogTitle>Edit Testing Requirements</DialogTitle>
-                        <DialogDescription>
-                            Modifying these parameters clears pre-generated test cases.
-                            You can run a quick AI-driven test case generation using the "Try it out" option at the bottom.
+                        <DialogTitle className='text-foreground'>Edit Test Case</DialogTitle>
+                        <DialogDescription className='text-muted-foreground'>
+                            Modify the test case parameters. Changing these will reset any cached Playwright scripts.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className='my-3'>
-                        <div className='mb-3'>
-                            <Label>Test Title</Label>
-                            <Input value={formTestCase.title ?? ''} placeholder='Test Title' className='mt-1' onChange={e => handleInputChange('title', e.target.value)} />
+                    <div className='space-y-4 my-2'>
+                        <div className='space-y-1.5'>
+                            <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>Test Title</Label>
+                            <Input
+                                value={formTestCase.title ?? ''}
+                                placeholder='Test Title'
+                                className='bg-muted/30 border-border'
+                                onChange={e => handleInputChange('title', e.target.value)}
+                            />
                         </div>
-                        <div className='mb-3'>
-                            <Label>Description</Label>
-                            <Textarea value={formTestCase.description ?? ''} placeholder='Description' className='mt-1' onChange={e => handleInputChange('description', e.target.value)} />
+                        <div className='space-y-1.5'>
+                            <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>Description</Label>
+                            <Textarea
+                                value={formTestCase.description ?? ''}
+                                placeholder='Description'
+                                className='bg-muted/30 border-border resize-none'
+                                rows={3}
+                                onChange={e => handleInputChange('description', e.target.value)}
+                            />
                         </div>
-                        <div className='mb-3'>
-                            <Label>Target Route/Path</Label>
-                            <Input value={formTestCase.targetRoute ?? ''} placeholder='/api/...' className='mt-1' onChange={e => handleInputChange('targetRoute', e.target.value)} />
+                        <div className='space-y-1.5'>
+                            <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>Target Route / Path</Label>
+                            <Input
+                                value={formTestCase.targetRoute ?? ''}
+                                placeholder='/api/...'
+                                className='bg-muted/30 border-border'
+                                onChange={e => handleInputChange('targetRoute', e.target.value)}
+                            />
                         </div>
-                        <div className='mb-3'>
-                            <Label>Expected Result</Label>
-                            <Textarea value={formTestCase.expectedResult ?? ''} placeholder='Expected Result' className='mt-1' onChange={e => handleInputChange('expectedResult', e.target.value)} />
+                        <div className='space-y-1.5'>
+                            <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>Expected Result</Label>
+                            <Textarea
+                                value={formTestCase.expectedResult ?? ''}
+                                placeholder='Expected Result'
+                                className='bg-muted/30 border-border resize-none'
+                                rows={3}
+                                onChange={e => handleInputChange('expectedResult', e.target.value)}
+                            />
                         </div>
                     </div>
 
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant="outline" disabled={isUpdating}>Cancel</Button>
+                            <Button variant="outline" disabled={isUpdating} className='border-border'>Cancel</Button>
                         </DialogClose>
                         <Button onClick={updateTestCase} disabled={isUpdating}>
-                            {isUpdating ? 'Updating...' : 'Update Case'}
+                            {isUpdating ? (
+                                <><Loader2 className='h-3.5 w-3.5 animate-spin mr-1.5' />Updating…</>
+                            ) : 'Update Case'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -122,4 +154,3 @@ function TestCaseSettingDialog({ tc, onReload }: Props) {
 }
 
 export default TestCaseSettingDialog
-

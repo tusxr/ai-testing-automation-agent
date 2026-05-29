@@ -15,6 +15,7 @@ import { Button } from '../ui/button'
 import { UserRepo } from '@/types'
 import axios from 'axios'
 import { Settings2Icon, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 type props = {
     repo: UserRepo;
@@ -40,18 +41,22 @@ function RepoSetting({ repo, setReload }: props) {
 
     const handleSaveSettings = async () => {
         setSaving(true)
+        const toastId = toast.loading('Saving project config…');
         try {
-            console.log("handleSaveSettings", repoSettings)
             await axios.post('/api/user-repo/settings', {
                 repoId: repo.repoId,
                 userId: repo.userId,
                 targetDomain: repoSettings.targetDomain,
                 globalInstruction: repoSettings.globalInstruction
             })
+            toast.success('Project config saved', {
+                id: toastId,
+                description: repo.fullName
+            });
             setReload?.()
             setOpen(false)
-        } catch (error) {
-            console.error("Failed to save repo settings:", error)
+        } catch {
+            toast.error('Failed to save project config', { id: toastId });
         } finally {
             setSaving(false)
         }
@@ -61,60 +66,63 @@ function RepoSetting({ repo, setReload }: props) {
         <div>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                    <button className='flex gap-3 items-center bg-black hover:bg-black/80 text-white rounded-xl px-3 py-2 cursor-pointer text-sm font-medium transition-colors'>
-                        <Settings2Icon className='h-4 w-4' />
-                        Project Config
-                    </button>
+                    <Button variant='outline' size='sm' className='gap-1.5 h-8 text-xs border-border'>
+                        <Settings2Icon className='h-3.5 w-3.5' />
+                        Config
+                    </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[425px] bg-background border-border">
                     <DialogHeader>
-                        <DialogTitle>Project Configuration</DialogTitle>
-                        <DialogDescription>
+                        <DialogTitle className='text-foreground'>Project Configuration</DialogTitle>
+                        <DialogDescription className='text-muted-foreground'>
                             Configure project-level defaults used during script generation and execution.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
+                    <div className="space-y-5 py-4">
                         <div className="space-y-2">
-                            <Label className='text-gray-500'>APP URL / DEFAULT WEBSITE</Label>
-                            <Input 
-                                value={repoSettings.targetDomain} 
-                                onChange={(e) => setRepoSettings({ ...repoSettings, targetDomain: e.target.value })} 
-                                placeholder='https://example.com' 
-                                className='mt-1' 
+                            <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>
+                                App URL / Default Website
+                            </Label>
+                            <Input
+                                value={repoSettings.targetDomain}
+                                onChange={(e) => setRepoSettings({ ...repoSettings, targetDomain: e.target.value })}
+                                placeholder='https://example.com'
+                                className='bg-muted/30 border-border'
                                 disabled={saving}
                             />
-                            <p className='text-xs text-gray-500'>The target address where automated headless browsers will connect and run test cases</p>
+                            <p className='text-xs text-muted-foreground'>
+                                The target address where automated headless browsers will connect and run test cases.
+                            </p>
                         </div>
                         <div className="space-y-2">
-                            <Label className='text-gray-500'>GLOBAL TEST INSTRUCTION</Label>
-                            <Input 
-                                value={repoSettings.globalInstruction} 
-                                onChange={(e) => setRepoSettings({ ...repoSettings, globalInstruction: e.target.value })} 
-                                placeholder='e.g., Use test credentials for login, bypass 2FA...' 
-                                className='mt-1' 
+                            <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>
+                                Global Test Instruction
+                            </Label>
+                            <Input
+                                value={repoSettings.globalInstruction}
+                                onChange={(e) => setRepoSettings({ ...repoSettings, globalInstruction: e.target.value })}
+                                placeholder='e.g., Use test credentials for login, bypass 2FA…'
+                                className='bg-muted/30 border-border'
                                 disabled={saving}
                             />
-                            <p className='text-xs text-gray-500'>Includes any authentication credentials, cookies, setups or teardown instructions. These are automatically appended to Gemini's Prompts</p>
+                            <p className='text-xs text-muted-foreground'>
+                                Authentication credentials, setup or teardown instructions. Appended to AI prompts automatically.
+                            </p>
                         </div>
                     </div>
-                    <DialogFooter className="gap-2 sm:gap-0">
+                    <DialogFooter className="gap-2">
                         <DialogClose asChild>
-                            <Button variant="outline" disabled={saving}>Cancel</Button>
+                            <Button variant="outline" disabled={saving} className='border-border'>Cancel</Button>
                         </DialogClose>
-                        <Button onClick={handleSaveSettings} disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
+                        <Button onClick={handleSaveSettings} disabled={saving}>
                             {saving ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Saving...
-                                </>
-                            ) : (
-                                'Save Config'
-                            )}
+                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</>
+                            ) : 'Save Config'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div >
+        </div>
     )
 }
 

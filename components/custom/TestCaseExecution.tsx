@@ -196,24 +196,24 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-6 gap-4 bg-white rounded-2xl shadow-2xl border overflow-hidden select-none">
-                <DialogHeader className="border-b pb-4 flex flex-row items-center justify-between shrink-0">
+            <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-6 gap-4 bg-background border-border rounded-2xl shadow-2xl overflow-hidden select-none">
+                <DialogHeader className="border-b border-border pb-4 flex flex-row items-center justify-between shrink-0">
                     <div>
-                        <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                            <PlayCircle className="text-primary h-6 w-6" />
+                        <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
+                            <PlayCircle className="text-primary h-5 w-5" />
                             Browserbase Cloud Test Runner
                         </DialogTitle>
-                        <DialogDescription className="text-gray-500 text-sm">
+                        <DialogDescription className="text-muted-foreground text-sm">
                             Run automation scripts completely in the cloud using Browserbase headless infrastructure.
                         </DialogDescription>
                     </div>
                 </DialogHeader>
 
                 {/* Target Configuration Header */}
-                <div className="flex flex-col bg-gray-50 p-4 rounded-2xl border border-gray-200/80 gap-3 shrink-0">
+                <div className="flex flex-col bg-muted/40 p-4 rounded-xl border border-border gap-3 shrink-0">
                     <div className="flex flex-col sm:flex-row gap-4 items-end">
                         <div className="flex-1 space-y-1.5">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                                 <Globe className="h-3.5 w-3.5 text-primary" /> Target Website URL
                             </label>
                             <Input
@@ -221,7 +221,7 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
                                 value={baseUrl}
                                 onChange={(e) => setBaseUrl(e.target.value)}
                                 disabled={isExecuting}
-                                className="bg-white border-gray-300 font-mono text-sm shadow-xs h-10"
+                                className="bg-background border-border font-mono text-sm h-10"
                             />
                         </div>
                         <div className="flex gap-2.5">
@@ -229,7 +229,7 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
                                 type="button"
                                 variant="outline"
                                 onClick={() => setShowOptions(!showOptions)}
-                                className={`h-10 px-4 font-medium text-xs gap-1.5 transition-colors border-gray-300 ${showOptions ? "bg-primary/5 text-primary border-primary/30" : ""}`}
+                                className={`h-10 px-4 font-medium text-xs gap-1.5 transition-colors border-border ${showOptions ? "bg-primary/10 text-primary border-primary/30" : ""}`}
                             >
                                 <SlidersHorizontal className="h-4 w-4" />
                                 Execution Options
@@ -256,18 +256,18 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
 
                     {/* Expandable Advanced Options Section */}
                     {showOptions && (
-                        <div className="pt-3 border-t border-gray-200/60 grid grid-cols-1 md:grid-cols-3 gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="pt-3 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
                             {/* Execution Mode Segment */}
                             <div className="md:col-span-1 space-y-1.5">
-                                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Run Mode</span>
-                                <div className="grid grid-cols-2 bg-gray-200/60 p-1 rounded-lg border border-gray-200">
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Run Mode</span>
+                                <div className="grid grid-cols-2 bg-muted p-1 rounded-lg border border-border">
                                     <button
                                         type="button"
                                         disabled={isExecuting}
                                         onClick={() => setExecutionMode("cache")}
                                         className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-semibold transition-all ${executionMode === "cache"
-                                                ? "bg-white text-gray-800 shadow-xs"
-                                                : "text-gray-500 hover:text-gray-700"
+                                                ? "bg-background text-foreground shadow-sm"
+                                                : "text-muted-foreground hover:text-foreground"
                                             } disabled:opacity-50`}
                                     >
                                         <Database className="h-3.5 w-3.5" /> Run Cached
@@ -277,8 +277,8 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
                                         disabled={isExecuting}
                                         onClick={() => setExecutionMode("generate")}
                                         className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-semibold transition-all ${executionMode === "generate"
-                                                ? "bg-white text-gray-800 shadow-xs"
-                                                : "text-gray-500 hover:text-gray-700"
+                                                ? "bg-background text-foreground shadow-sm"
+                                                : "text-muted-foreground hover:text-foreground"
                                             } disabled:opacity-50`}
                                     >
                                         <Sparkles className="h-3.5 w-3.5 text-yellow-600" /> AI Regenerate
@@ -288,7 +288,7 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
 
                             {/* Temporary Prompt/Instruction Override Textarea */}
                             <div className="md:col-span-2 space-y-1.5">
-                                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                     Custom Run Instructions (Merged with Global Settings)
                                 </span>
                                 <textarea
@@ -296,8 +296,8 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
                                     value={customPrompt}
                                     onChange={(e) => setCustomPrompt(e.target.value)}
                                     disabled={isExecuting || executionMode === "cache"}
-                                    rows={1.5}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-xs font-sans focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:bg-gray-100 shadow-xs resize-none"
+                                    rows={2}
+                                    className="w-full rounded-md border border-border bg-muted/30 px-3 py-1.5 text-xs text-foreground font-sans focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:bg-muted resize-none"
                                 />
                             </div>
                         </div>
@@ -307,8 +307,8 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
                 {/* Main Dashboard Panel */}
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-5 overflow-hidden">
                     {/* Left: Test Cases Queue List */}
-                    <div className="md:col-span-1 border rounded-xl overflow-y-auto bg-gray-50/50 p-3 flex flex-col gap-2 shadow-xs">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-2 mb-1">
+                    <div className="md:col-span-1 border border-border rounded-xl overflow-y-auto bg-muted/20 p-3 flex flex-col gap-2">
+                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-1">
                             Execution Queue
                         </h3>
                         {testCases.map((tc, index) => {
@@ -321,17 +321,17 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
                                     key={tc.id}
                                     onClick={() => setSelectedDetailId(tc.id)}
                                     className={`p-3 rounded-lg border cursor-pointer transition-all ${isActive
-                                            ? "bg-white border-primary shadow-sm ring-1 ring-primary/20"
-                                            : "bg-white border-gray-200 hover:border-gray-300 shadow-xs"
+                                            ? "bg-background border-primary shadow-sm ring-1 ring-primary/20"
+                                            : "bg-card border-border hover:border-muted-foreground/30"
                                         }`}
                                 >
                                     <div className="flex justify-between items-start gap-2 mb-1">
-                                        <h4 className="font-semibold text-sm text-gray-800 line-clamp-1">
+                                        <h4 className="font-semibold text-sm text-foreground line-clamp-1">
                                             {tc.title}
                                         </h4>
                                         <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform ${isActive ? "rotate-90 text-primary" : ""}`} />
                                     </div>
-                                    <p className="text-xs text-gray-400 line-clamp-1 mb-2.5">
+                                    <p className="text-xs text-muted-foreground line-clamp-1 mb-2.5">
                                         {tc.description}
                                     </p>
                                     <div className="flex justify-between items-center">
@@ -346,16 +346,16 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
                     </div>
 
                     {/* Right: Code, Live Logs & Details Panel */}
-                    <div className="md:col-span-2 border rounded-xl flex flex-col bg-white overflow-hidden shadow-sm">
+                    <div className="md:col-span-2 border border-border rounded-xl flex flex-col bg-card overflow-hidden shadow-sm">
                         {currentSelectedTestCase ? (
                             <div className="flex-1 flex flex-col overflow-hidden">
                                 {/* Header Info */}
-                                <div className="p-4 border-b bg-gray-50/50 flex justify-between items-start gap-4 shrink-0">
+                                <div className="p-4 border-b border-border bg-muted/30 flex justify-between items-start gap-4 shrink-0">
                                     <div>
-                                        <h3 className="font-bold text-base text-gray-800">
+                                        <h3 className="font-bold text-sm text-foreground">
                                             {currentSelectedTestCase.title}
                                         </h3>
-                                        <p className="text-xs text-gray-500 mt-1">
+                                        <p className="text-xs text-muted-foreground mt-1">
                                             Expected: {currentSelectedTestCase.expectedResult}
                                         </p>
                                     </div>
@@ -376,8 +376,8 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
                                     {/* Playwright Script Code Block */}
                                     {currentSelectedResult?.browserbaseScript && (
                                         <div className="rounded-lg border overflow-hidden">
-                                            <div className="bg-gray-100 px-3.5 py-2 border-b flex items-center justify-between">
-                                                <span className="text-xs font-semibold text-gray-600 flex items-center gap-1.5">
+                                            <div className="bg-muted/50 px-3.5 py-2 border-b border-border flex items-center justify-between">
+                                                <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                                                     <Code className="h-3.5 w-3.5 text-primary" /> Generated Playwright Code
                                                 </span>
                                             </div>
@@ -422,9 +422,9 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
                             </div>
                         ) : (
                             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-                                <Terminal className="h-12 w-12 text-gray-300 mb-3" />
-                                <h3 className="font-bold text-gray-700 text-lg">No Test Case Selected</h3>
-                                <p className="text-sm text-gray-400 mt-1 max-w-sm">
+                                <Terminal className="h-12 w-12 text-muted-foreground/40 mb-3" />
+                                <h3 className="font-semibold text-foreground text-base">No Test Case Selected</h3>
+                                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
                                     Choose any test case from the queue to inspect its console logs and code.
                                 </p>
                             </div>
@@ -433,7 +433,7 @@ export default function TestExecutionModal({ isOpen, onClose, testCases, reposit
                 </div>
 
                 {/* Footer Controls */}
-                <div className="border-t pt-4 flex justify-end gap-3 shrink-0">
+                <div className="border-t border-border pt-4 flex justify-end gap-3 shrink-0">
                     <Button variant="outline" onClick={onClose} disabled={isExecuting} className="h-10 font-medium px-5">
                         Close & Refresh Status
                     </Button>

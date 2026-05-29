@@ -14,7 +14,8 @@ import { Button } from '../ui/button'
 import axios from 'axios'
 import { UserDetailContext } from '@/context/UserDetailContext'
 import { Repo, UserRepo } from '@/types'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus, CheckCircle2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface RepoDialogProps {
     userRepoList: UserRepo[];
@@ -48,18 +49,19 @@ function RepoDialog({ userRepoList, setRefreshPage, onAuthError }: RepoDialogPro
         setErrorMsg('');
         try {
             const result = await axios.get('/api/github/repo')
-            console.log(result.data)
             if (Array.isArray(result.data)) {
                 setRepoList(result.data)
             } else {
                 setErrorMsg('Failed to parse repositories list.')
             }
         } catch (e: any) {
-            console.error("Error fetching repository tree:", e);
             if (e.response?.status === 401) {
                 onAuthError?.();
+                toast.error('GitHub session expired. Please reconnect.');
+            } else {
+                setErrorMsg(e.response?.data?.error || 'Failed to fetch repositories from GitHub.');
+                toast.error('Could not load GitHub repositories');
             }
-            setErrorMsg(e.response?.data?.error || 'Failed to fetch repositories from GitHub.');
         } finally {
             setIsLoadingRepos(false);
         }
@@ -71,12 +73,12 @@ function RepoDialog({ userRepoList, setRefreshPage, onAuthError }: RepoDialogPro
         return repoList.filter(r => r.full_name.toLowerCase().includes(q));
     }, [repoList, searchTerm])
 
-
     const SaveRepoToDB = async () => {
         if (!selectedRepo || isSaving) return;
         setIsSaving(true);
+        const toastId = toast.loading('Adding repository…');
         try {
-            const result = await axios.post('/api/user-repo', {
+            await axios.post('/api/user-repo', {
                 repoId: selectedRepo.id,
                 userId: userDetail?.id,
                 name: selectedRepo.name,
@@ -89,60 +91,80 @@ function RepoDialog({ userRepoList, setRefreshPage, onAuthError }: RepoDialogPro
                 defaultBranch: selectedRepo.default_branch || 'main',
                 targetDomain: targetDomain || 'http://localhost:3000',
             })
-            console.log(result.data);
+            toast.success('Repository added', {
+                id: toastId,
+                description: selectedRepo.full_name
+            });
             setIsOpen(false);
             setRefreshPage(true);
-        } catch (e) {
-            console.error("Error saving repository:", e);
+        } catch {
+            toast.error('Failed to add repository', { id: toastId });
         } finally {
             setIsSaving(false);
         }
     }
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
             <DialogTrigger asChild>
-                <Button> + Add Repo</Button>
+                <Button size='sm' className='gap-1.5'>
+                    <Plus className='h-3.5 w-3.5' /> Add Repo
+                </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className='bg-background border-border'>
                 <DialogHeader>
-                    <DialogTitle>Add Repository</DialogTitle>
-                    <DialogDescription>
-                        Search and Select your repository
+                    <DialogTitle className='text-foreground'>Add Repository</DialogTitle>
+                    <DialogDescription className='text-muted-foreground'>
+                        Search and select a GitHub repository to add to your workspace.
                     </DialogDescription>
                 </DialogHeader>
+
                 <div>
-                    <Input placeholder='Search Repo by Name'
-                        className='w-full mb-3' onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(event.target.value)} />
-                    <ul className='max-h-48 overflow-y-auto border rounded-xl mt-2 min-h-[100px] flex flex-col justify-start'>
+                    <Input
+                        placeholder='Search by repo name…'
+                        className='w-full mb-3 bg-muted/30 border-border'
+                        onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(event.target.value)}
+                    />
+                    <ul className='max-h-52 overflow-y-auto border border-border rounded-xl mt-2 min-h-[100px] flex flex-col bg-background'>
                         {isLoadingRepos ? (
-                            <div className="flex flex-1 items-center justify-center py-6 gap-2 text-sm text-gray-500">
+                            <div className="flex flex-1 items-center justify-center py-6 gap-2 text-sm text-muted-foreground">
                                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                                <span>Loading repositories...</span>
+                                <span>Loading repositories…</span>
                             </div>
                         ) : errorMsg ? (
-                            <div className="flex flex-1 flex-col items-center justify-center py-6 px-4 text-center text-sm text-red-500 gap-2">
+                            <div className="flex flex-1 flex-col items-center justify-center py-6 px-4 text-center text-sm text-destructive gap-2">
                                 <span>{errorMsg}</span>
                                 <Button size="sm" variant="outline" onClick={GetRepoList}>Retry</Button>
                             </div>
                         ) : filteredRepoList.length === 0 ? (
-                            <div className="flex flex-1 items-center justify-center py-6 text-sm text-gray-500">
+                            <div className="flex flex-1 items-center justify-center py-6 text-sm text-muted-foreground">
                                 No repositories found.
                             </div>
                         ) : (
                             filteredRepoList.map((repo) => {
                                 const isAdded = userRepoList.some((ur) => ur.repoId === repo.id);
+                                const isSelected = selectedRepo?.id === repo.id;
                                 return (
                                     <li
                                         key={repo.id}
-                                        className={`p-3 border-b last:border-b-0 hover:bg-gray-100 cursor-pointer flex justify-between items-center ${selectedRepo?.id === repo.id ? 'bg-gray-100 font-medium' : ''}`}
+                                        className={`p-3 border-b border-border last:border-b-0 cursor-pointer flex justify-between items-center transition-colors ${
+                                            isSelected
+                                                ? 'bg-primary/10 text-foreground font-medium'
+                                                : 'hover:bg-muted/50 text-foreground'
+                                        }`}
                                         onClick={() => setSelectedRepo(repo)}
                                     >
                                         <span className="text-sm truncate mr-2">{repo.full_name}</span>
-                                        {isAdded && (
-                                            <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-semibold shrink-0">
-                                                Added
-                                            </span>
-                                        )}
+                                        <div className='flex items-center gap-1.5 shrink-0'>
+                                            {isSelected && !isAdded && (
+                                                <CheckCircle2 className='h-3.5 w-3.5 text-primary' />
+                                            )}
+                                            {isAdded && (
+                                                <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full font-semibold">
+                                                    Added
+                                                </span>
+                                            )}
+                                        </div>
                                     </li>
                                 );
                             })
@@ -150,22 +172,23 @@ function RepoDialog({ userRepoList, setRefreshPage, onAuthError }: RepoDialogPro
                     </ul>
 
                     {selectedRepo && (
-                        <div className="mt-4 p-4 border rounded-xl bg-gray-50 space-y-2">
-                            <label className="text-xs font-semibold text-gray-600 block">
+                        <div className="mt-4 p-4 border border-border rounded-xl bg-muted/30 space-y-2">
+                            <label className="text-xs font-semibold text-muted-foreground block">
                                 Target Domain (for running tests)
                             </label>
                             <Input
                                 placeholder="e.g., http://localhost:3000"
                                 value={targetDomain}
                                 onChange={(e) => setTargetDomain(e.target.value)}
-                                className="w-full bg-white"
+                                className="w-full bg-background border-border"
                             />
                         </div>
                     )}
                 </div>
+
                 <DialogFooter className='flex justify-end gap-2 mt-4'>
                     <DialogClose asChild>
-                        <Button variant={'outline'}>Cancel</Button>
+                        <Button variant={'outline'} className='border-border'>Cancel</Button>
                     </DialogClose>
                     {(() => {
                         const isSelectedAlreadyAdded = selectedRepo && userRepoList.some((ur) => ur.repoId === selectedRepo.id);
@@ -174,13 +197,14 @@ function RepoDialog({ userRepoList, setRefreshPage, onAuthError }: RepoDialogPro
                                 onClick={() => SaveRepoToDB()}
                                 disabled={isSaving || !selectedRepo || !!isSelectedAlreadyAdded}
                             >
-                                {isSaving ? "Adding..." : isSelectedAlreadyAdded ? "Already Added" : "Add"}
+                                {isSaving ? (
+                                    <><Loader2 className='h-3.5 w-3.5 animate-spin mr-1.5' />Adding…</>
+                                ) : isSelectedAlreadyAdded ? 'Already Added' : 'Add Repository'}
                             </Button>
                         );
                     })()}
                 </DialogFooter>
             </DialogContent>
-
         </Dialog>
     )
 }
