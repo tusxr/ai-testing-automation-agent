@@ -26,7 +26,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import ThemeToggle from '@/components/custom/ThemeToggle';
 
 export const metadata = {
-  title: 'QA Autopilot – AI-Powered Test Automation',
+  title: 'Test Hive – AI-Powered Test Automation',
   description:
     'Connect your GitHub repository, generate AI test cases, convert them to Playwright scripts, and run them in the cloud. QA automation at the speed of AI.',
 };
@@ -174,11 +174,8 @@ export default async function HomePage() {
       {/* ─── NAVBAR ─────────────────────────────── */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground">
-              <Sparkles className="h-4 w-4 text-background" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-foreground">QA Autopilot</span>
+          <div className="flex items-center">
+            <span className="text-xl font-extrabold tracking-tight text-foreground">Test Hive.</span>
           </div>
           <nav className="hidden items-center gap-6 md:flex">
             <a href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Features</a>
@@ -509,19 +506,19 @@ export default async function HomePage() {
       </section>
 
       {/* ─── FOOTER ─────────────────────────────── */}
-      <footer className="border-t border-border bg-background py-10">
+      <footer className="border-t border-border bg-background py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground">
-                <Sparkles className="h-3.5 w-3.5 text-background" />
-              </div>
-              <span className="text-sm font-semibold text-foreground">QA Autopilot</span>
-            </div>
-            <p className="text-center text-xs text-muted-foreground sm:text-right">
-              Built with Next.js · Gemini AI · Browserbase · Playwright
-            </p>
-          </div>
+          <p className="text-center text-sm text-muted-foreground">
+            Made with ❤️ by{' '}
+            <a
+              href="https://github.com/tusxr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+            >
+              tusxr
+            </a>
+          </p>
         </div>
       </footer>
 

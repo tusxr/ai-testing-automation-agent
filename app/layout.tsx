@@ -6,7 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
-  title: "QA Autopilot – AI-Powered Test Automation",
+  title: "Test Hive – AI-Powered Test Automation",
   description: "Connect your GitHub repository, generate AI test cases, convert them to Playwright scripts, and run them in cloud browsers.",
 };
 
