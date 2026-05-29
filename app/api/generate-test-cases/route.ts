@@ -150,9 +150,11 @@ export async function POST(req: NextRequest) {
             repoId,
             owner,
             repo,
-            branch = "main",
-
+            branch: branchRaw,
         } = body;
+
+        // Null-safe branch: default to 'main' if missing or null
+        const branch = branchRaw || "main";
 
         if (!userId || !owner || !repo || !githubToken) {
             return NextResponse.json(
@@ -307,7 +309,15 @@ Important rules:
             },
         });
 
-        const aiResult = JSON.parse(response.text || "{}");
+        const rawText = response.text;
+        if (!rawText) {
+            console.warn("Generate test cases warning: Gemini returned empty response", { owner, repo, branch });
+            return NextResponse.json(
+                { error: "Gemini returned an empty response. Please try again." },
+                { status: 500 }
+            );
+        }
+        const aiResult = JSON.parse(rawText);
         const testCases = aiResult.testCases || [];
 
         if (!testCases.length) {
@@ -324,8 +334,8 @@ Important rules:
             .insert(TestCasesTable)
             .values(
                 testCases.map((testCase: any) => ({
-                    userId,
-                    repoId,
+                    userId: String(userId),
+                    repoId: String(repoId),
                     repoName: repo,
                     repoOwner: owner,
                     branch,

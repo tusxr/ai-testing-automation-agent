@@ -7,14 +7,17 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "../ui/accordion"
-import { CheckCircle2, ListChecks, Loader2, Sparkles, TrendingUp, XCircle } from 'lucide-react'
+import { CheckCircle2, Globe2Icon, ListChecks, Loader2, Settings2Icon, Sparkles, TrendingUp, XCircle } from 'lucide-react'
 import { Button } from '../ui/button'
+import { Input } from "@/components/ui/input"
 import axios from 'axios'
 import { UserDetailContext } from '@/context/UserDetailContext'
 import TestCaseList from './TestCaseList'
+import RepoSetting from './RepoSetting'
 
 type props = {
     repoList: UserRepo[];
+    onRefreshRepos?: () => void;
 }
 
 export type TestCase = {
@@ -32,15 +35,41 @@ export type TestCase = {
     expectedResult: string | null;
     status: string | null;
     createdAt: string | null;
+    targetDomain: string | null;
+
 }
 
-function UserRepoList({ repoList }: props) {
+function UserRepoList({ repoList, onRefreshRepos }: props) {
     const { userDetail } = useContext(UserDetailContext);
     const [loadingRepoId, setLoadingRepoId] = useState<number | null>(null);
     // Map of repoId (string) -> TestCase[]
     const [testCaseMap, setTestCaseMap] = useState<Record<string, TestCase[]>>({});
     // Map of repoId (string) -> boolean (loading)
     const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
+
+    const [domainInputs, setDomainInputs] = useState<Record<number, string>>({});
+    const [savingDomain, setSavingDomain] = useState<Record<number, boolean>>({});
+
+    const handleDomainChange = (id: number, value: string) => {
+        setDomainInputs(prev => ({ ...prev, [id]: value }));
+    }
+
+    const saveDomain = async (id: number) => {
+        const value = domainInputs[id];
+        if (value === undefined) return;
+        setSavingDomain(prev => ({ ...prev, [id]: true }));
+        try {
+            await axios.put('/api/user-repo', {
+                id,
+                targetDomain: value
+            });
+            onRefreshRepos?.();
+        } catch (e) {
+            console.error('Failed to save target domain:', e);
+        } finally {
+            setSavingDomain(prev => ({ ...prev, [id]: false }));
+        }
+    }
 
     const handleGenerateTestCases = async (repo: UserRepo) => {
         setLoadingRepoId(repo.id);
@@ -66,7 +95,7 @@ function UserRepoList({ repoList }: props) {
     const fetchTestCases = async (repoId: string) => {
         setLoadingMap(prev => ({ ...prev, [repoId]: true }));
         try {
-            const result = await axios.get(`/api/test-cases?repoId=${repoId}`);
+            const result = await axios.get(`/api/test-cases?repoId=${repoId}&t=${Date.now()}`);
             setTestCaseMap(prev => ({ ...prev, [repoId]: result.data || [] }));
         } catch (e) {
             console.error("Error getting test cases:", e);
@@ -109,6 +138,33 @@ function UserRepoList({ repoList }: props) {
                             </AccordionTrigger>
                             <AccordionContent>
                                 <div className="pt-4 space-y-5">
+                                    <div className='bg-gray-50 p-3 border rounded-xl'>
+                                        <div className='flex gap-3 items-center justify-between'>
+                                            <div className='flex gap-3 items-center flex-1'>
+                                                <Globe2Icon className='h-5 w-5 text-gray-500' />
+                                                <h2 className='font-semibold text-sm shrink-0'>Target Domain</h2>
+                                                <Input
+                                                    value={domainInputs[repo.id] !== undefined ? domainInputs[repo.id] : (repo.targetDomain || '')}
+                                                    placeholder='e.g., http://localhost:3000'
+                                                    className='bg-white max-w-sm h-8 text-sm'
+                                                    onChange={(e) => handleDomainChange(repo.id, e.target.value)}
+                                                    disabled={savingDomain[repo.id]}
+                                                />
+                                                {(domainInputs[repo.id] !== undefined && domainInputs[repo.id] !== (repo.targetDomain || '')) && (
+                                                    <Button
+                                                        size='sm'
+                                                        className='h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white'
+                                                        onClick={() => saveDomain(repo.id)}
+                                                        disabled={savingDomain[repo.id]}
+                                                    >
+                                                        {savingDomain[repo.id] ? 'Saving...' : 'Save'}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            {/* <button className='flex gap-3 items-center bg-black   hover:bg-black/80 text-white rounded-xl px-3 py-2 cursor-pointer'> <Settings2Icon className='h-4 w-4' />Project Config</button> */}
+                                            <RepoSetting repo={repo} setReload={onRefreshRepos} />
+                                        </div>
+                                    </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                         <StatusCard
                                             title="Total Tests"
@@ -148,9 +204,9 @@ function UserRepoList({ repoList }: props) {
                                     )}
 
                                     {testCases.length > 0 && (
-                                        <TestCaseList 
-                                            testCase={testCases} 
-                                            onReload={() => fetchTestCases(repoKey)} 
+                                        <TestCaseList
+                                            testCase={testCases}
+                                            onReload={() => fetchTestCases(repoKey)}
                                             loading={loading}
                                         />
                                     )}

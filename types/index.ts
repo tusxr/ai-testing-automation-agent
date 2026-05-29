@@ -12,6 +12,7 @@ export type Repo = {
 }
 
 export type UserRepo = {
+    targetDomain: string;
     id: number;
     userId: number;
     repoId: number;
@@ -24,4 +25,6 @@ export type UserRepo = {
     owner: string;
     language: string;
     defaultBranch?: string;
+    globalInstruction?: string;
+
 }

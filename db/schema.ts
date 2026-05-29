@@ -19,6 +19,9 @@ export const repositories = pgTable("repositories", {
   htmlUrl: text("html_url").notNull(),
   owner: text("owner").notNull(),
   language: text("language"),
+  defaultBranch: text("default_branch"),
+  targetDomain: text("target_domain"),
+  globalInstruction: text("global_instruction"),
 });
 
 export const TestCasesTable = pgTable("test_cases", {

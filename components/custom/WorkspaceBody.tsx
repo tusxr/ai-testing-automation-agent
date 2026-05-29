@@ -70,7 +70,7 @@ function WorkspaceBody() {
                         <EmptyWorkspace />
                     </CardContent>
                 </Card> : (
-                    <UserRepoList repoList={userRepoList} />
+                    <UserRepoList repoList={userRepoList} onRefreshRepos={GetUserRepoList} />
                 )}
 
 

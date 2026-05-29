@@ -27,6 +27,7 @@ function RepoDialog({ userRepoList, setRefreshPage }: RepoDialogProps) {
     const { userDetail } = useContext(UserDetailContext)
     const [isOpen, setIsOpen] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
+    const [targetDomain, setTargetDomain] = useState('http://localhost:3000')
 
     useEffect(() => {
         GetRepoList()
@@ -36,6 +37,7 @@ function RepoDialog({ userRepoList, setRefreshPage }: RepoDialogProps) {
         if (!isOpen) {
             setSelectedRepo(undefined);
             setSearchTerm('');
+            setTargetDomain('http://localhost:3000');
         }
     }, [isOpen]);
 
@@ -61,11 +63,13 @@ function RepoDialog({ userRepoList, setRefreshPage }: RepoDialogProps) {
                 userId: userDetail?.id,
                 name: selectedRepo.name,
                 fullName: selectedRepo.full_name,
-                private_: selectedRepo.private_,
+                private_: selectedRepo.private_ ? 1 : 0,
                 description: selectedRepo.description || "",
                 language: selectedRepo.language || "",
                 htmlUrl: selectedRepo.html_url,
-                owner: selectedRepo.owner
+                owner: selectedRepo.owner,
+                defaultBranch: selectedRepo.default_branch || 'main',
+                targetDomain: targetDomain || 'http://localhost:3000',
             })
             console.log(result.data);
             setIsOpen(false);
@@ -90,14 +94,14 @@ function RepoDialog({ userRepoList, setRefreshPage }: RepoDialogProps) {
                 </DialogHeader>
                 <div>
                     <Input placeholder='Search Repo by Name'
-                        className='w-full' onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(event.target.value)} />
-                    <ul className='max-h-60 overflow-y-auto border-b rounded-xl mt-4'>
+                        className='w-full mb-3' onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(event.target.value)} />
+                    <ul className='max-h-48 overflow-y-auto border rounded-xl mt-2'>
                         {filteredRepoList.map((repo) => {
                             const isAdded = userRepoList.some((ur) => ur.repoId === repo.id);
                             return (
                                 <li
                                     key={repo.id}
-                                    className={`p-4 border-b hover:bg-gray-100 cursor-pointer flex justify-between items-center ${selectedRepo?.id === repo.id ? 'bg-gray-100' : ''}`}
+                                    className={`p-3 border-b last:border-b-0 hover:bg-gray-100 cursor-pointer flex justify-between items-center ${selectedRepo?.id === repo.id ? 'bg-gray-100 font-medium' : ''}`}
                                     onClick={() => setSelectedRepo(repo)}
                                 >
                                     <span>{repo.full_name}</span>
@@ -110,9 +114,23 @@ function RepoDialog({ userRepoList, setRefreshPage }: RepoDialogProps) {
                             );
                         })}
                     </ul>
+
+                    {selectedRepo && (
+                        <div className="mt-4 p-4 border rounded-xl bg-gray-50 space-y-2">
+                            <label className="text-xs font-semibold text-gray-600 block">
+                                Target Domain (for running tests)
+                            </label>
+                            <Input
+                                placeholder="e.g., http://localhost:3000"
+                                value={targetDomain}
+                                onChange={(e) => setTargetDomain(e.target.value)}
+                                className="w-full bg-white"
+                            />
+                        </div>
+                    )}
                 </div>
-                <DialogFooter className='flex justify-end gap-2 '>
-                    <DialogClose>
+                <DialogFooter className='flex justify-end gap-2 mt-4'>
+                    <DialogClose asChild>
                         <Button variant={'outline'}>Cancel</Button>
                     </DialogClose>
                     {(() => {
